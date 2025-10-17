@@ -1,0 +1,431 @@
+{
+  "name": "AgriSphere",
+  "nodes": [
+    {
+      "parameters": {
+        "updates": [
+          "messages"
+        ],
+        "options": {}
+      },
+      "type": "n8n-nodes-base.whatsAppTrigger",
+      "typeVersion": 1,
+      "position": [
+        -336,
+        -272
+      ],
+      "id": "4793078b-e790-4457-bd26-47be346afcdd",
+      "name": "WhatsApp Trigger",
+      "webhookId": "0ad6b322-c007-416e-8b46-91695cecac97",
+      "credentials": {
+        "whatsAppTriggerApi": {
+          "id": "Jp9KiVTNCVy7gMCI",
+          "name": "Yasir"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "image",
+        "operation": "analyze",
+        "modelId": {
+          "__rl": true,
+          "value": "models/gemini-2.5-flash",
+          "mode": "list",
+          "cachedResultName": "models/gemini-2.5-flash"
+        },
+        "inputType": "binary",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.googleGemini",
+      "typeVersion": 1,
+      "position": [
+        560,
+        -72
+      ],
+      "id": "f6750c4b-3b45-4b0f-85d4-382397d47110",
+      "name": "Analyze an image",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "GZp4ZZUqU4pJDveI",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.content.parts[0].text }}",
+        "options": {
+          "systemMessage": "=here is the output of the image analysis model \n{{ $json.content.parts[0].text }}\nYou are a smart, empathetic agricultural assistant designed to support farmers.\n\nYou will receive the analyzed result of a crop image from an image analysis model that predicts possible plant diseases or nutrient deficiencies.\n\nYour job:\n1. Understand the prediction result (e.g., disease name, severity, crop type, etc.).\n2.Respond in two parts:\n\n🗣️ First in Urdu language — polite, simple, and easy to understand.\nThen repeat the same message in English.\n3. Inform the user about the issue in a calm, polite, and encouraging way — never cause panic.\n4. Explain the issue briefly and clearly in simple language.\n5. Suggest mild, practical remedies such as suitable fertilizers, fungicides, or care methods.\n6. Always reassure the farmer that the issue is manageable and improvement is possible.\n7. End the message with a motivating or caring sentence.\n\n**Tone:** Supportive, friendly, and optimistic.  \n**Goal:** Educate and encourage the farmer, not frighten them. and message should be concise not lengthy\n\n"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        784,
+        -64
+      ],
+      "id": "33875585-6562-4b4e-affb-23f65e33b015",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        856,
+        152
+      ],
+      "id": "d1ce7505-4dda-48dd-ade4-4753c7aca919",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "GZp4ZZUqU4pJDveI",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "send",
+        "phoneNumberId": "862191490303907",
+        "recipientPhoneNumber": "+923325450741",
+        "textBody": "={{ $json.output }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.whatsApp",
+      "typeVersion": 1.1,
+      "position": [
+        1232,
+        -272
+      ],
+      "id": "5b2fa206-19ec-4905-8346-6db8ac7a8494",
+      "name": "Send message",
+      "webhookId": "d77f86c9-8574-44c4-8b6d-db84f522cd9b",
+      "credentials": {
+        "whatsAppApi": {
+          "id": "6PGATEw2kbOtcZAs",
+          "name": "WhatsApp account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "=https://graph.facebook.com/v20.0/{{$json[\"messages\"][0][\"image\"][\"id\"]}}\n",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "fields",
+              "value": "url,mime_type,sha256,file_size"
+            }
+          ]
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer EAAhsBMe3OhoBPnsatP4uQrD8Elhlv12vZByZBo0f5dwleOMypeAihD5qhiH2tr51wHFZAtg6ihOORsCnF254mbovG4iZBAzYnWC4kArZChtzQ01IAyjYjcfXApISKQj6kBICRgSiPJYGr9DPRSgBtxUa4BRLTwikj3RJzHacNKAFj32KFKmPC7WESdGtTP32O3I6RB6uTHzPKzntF3VoGJf8kZAFZBDZA0wjP04QtOhqyeHIklNV0xjtfKAhi5HaigZDZD"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        112,
+        -72
+      ],
+      "id": "36b24164-d05f-4cda-a6c9-84de55418f05",
+      "name": "Node to make a valid URL"
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.url }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer EAAhsBMe3OhoBPnsatP4uQrD8Elhlv12vZByZBo0f5dwleOMypeAihD5qhiH2tr51wHFZAtg6ihOORsCnF254mbovG4iZBAzYnWC4kArZChtzQ01IAyjYjcfXApISKQj6kBICRgSiPJYGr9DPRSgBtxUa4BRLTwikj3RJzHacNKAFj32KFKmPC7WESdGtTP32O3I6RB6uTHzPKzntF3VoGJf8kZAFZBDZA0wjP04QtOhqyeHIklNV0xjtfKAhi5HaigZDZD"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "file"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        336,
+        -72
+      ],
+      "id": "69ecdf4e-014b-4331-9a30-5823eb2b55b5",
+      "name": "Node to Convert Url into binary file"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{$json[\"messages\"][0][\"type\"]}}",
+                    "rightValue": "text",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "304a0087-0530-4767-872c-104b5a7a88ef"
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "b9d812d1-eb32-4307-8086-e91d4567cf41",
+                    "leftValue": "={{$json[\"messages\"][0][\"type\"]}}",
+                    "rightValue": "image",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.3,
+      "position": [
+        -112,
+        -272
+      ],
+      "id": "fa815771-59ac-439c-9706-83278ddc9dcf",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.messages[0].text }}",
+        "options": {
+          "systemMessage": "=\n\nYou are AgriSphere – the Intelligent Agriculture Assistant. 🌱\nYour main goal is to help farmers and growers detect crop diseases early, provide expert advice, and guide them on improving crop health and productivity.\n\nWhen a user sends a greeting or formal message such as:\n\n“hello”, “hi”, “hey”, “assalam o alaikum”, “salam”, “good morning”, or any similar greeting —\n\nyou must always reply with this exact message only (do not change or paraphrase it):\nDear \n {{ $json.contacts[0].profile.name }}\n👋 Welcome to AgriSphere! 🌾\nHello there! I’m AgriSphere – your intelligent agriculture assistant.\nI’m here to help you keep your crops healthy and productive. 🌱\n\nYou can:\n✅ Get early detection of crop diseases by sharing an image of your plants.\n✅ Receive expert guidance, fertilizer suggestions, and care tips.\n✅ Learn how to improve your farm’s yield — all through simple, friendly chat!\n\nPlease start by greeting me or telling me about your crops. When you’re ready, just send a picture of your plant, and I’ll analyze it for you. 📸\n\nTogether, let’s make your farm thrive! 🌿\n\n\nIf the user sends a message indicating their crops are damaged, in danger, unhealthy, or facing any issue\nthen you must understand it as a crop problem statement and respond politely and professionally with empathy and guidance.\n\nYour reply should:\n\nShow concern and understanding of the user’s situation.\n\nAsk the user to share a picture of the affected crop so that you can analyze it and give a precise diagnosis and dont ask the user to explain the problem or what type of crop it is \n\nKeep the tone encouraging, calm, and supportive — avoid panic or harsh language\n"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        784,
+        -576
+      ],
+      "id": "6c1afb15-1673-4b7b-bfb1-10f46c1465a5",
+      "name": "AI Agent1"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        608,
+        -352
+      ],
+      "id": "a1b6dd34-f573-4de4-8c98-64bee45060af",
+      "name": "Google Gemini Chat Model1",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "GZp4ZZUqU4pJDveI",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $('WhatsApp Trigger').item.json.contacts[0].wa_id }}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        832,
+        -368
+      ],
+      "id": "25f16062-9f17-4bd4-ad21-695b4b69d935",
+      "name": "Simple Memory"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "WhatsApp Trigger": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Analyze an image": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Send message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Node to make a valid URL": {
+      "main": [
+        [
+          {
+            "node": "Node to Convert Url into binary file",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Node to Convert Url into binary file": {
+      "main": [
+        [
+          {
+            "node": "Analyze an image",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Node to make a valid URL",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent1": {
+      "main": [
+        [
+          {
+            "node": "Send message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "ai_memory",
+            "index": 0
+          },
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "6024d54f-5ed0-4e33-ad64-2c50f330ec7b",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "06185c8c98358ba7a89bd81ffd3c06bee2874262a1fdb9c794a115bcdf20c316"
+  },
+  "id": "VhebR9hWAKO7mLaL",
+  "tags": []
+}
